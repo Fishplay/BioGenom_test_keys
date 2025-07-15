@@ -1,0 +1,6 @@
+@BioGenov_test_keys_HostAddress = http://localhost:5156
+
+
+GET {{BioGenov_test_keys_HostAddress}}/api/reports/latest
+###
+

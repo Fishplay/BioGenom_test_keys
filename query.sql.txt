@@ -1,0 +1,65 @@
+-- Таблица отчётов (хранит только последний отчёт)
+CREATE TABLE nutrition_reports (
+    id SERIAL PRIMARY KEY,
+    reduced_count INT NOT NULL,
+    sufficient_count INT NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Текущие метрики
+CREATE TABLE current_metrics (
+    id SERIAL PRIMARY KEY,
+    report_id INT NOT NULL REFERENCES nutrition_reports(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    current_value DECIMAL(10,2) NOT NULL,
+    norm_value TEXT NOT NULL,  -- текст для поддержки "от X до Y"
+    unit TEXT NOT NULL
+);
+
+-- Персонализированный набор БАДов
+CREATE TABLE personalized_sets (
+    id SERIAL PRIMARY KEY,
+    report_id INT NOT NULL REFERENCES nutrition_reports(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    note TEXT,
+    description TEXT,
+    alternatives_count INT NOT NULL
+);
+
+-- Компоненты набора БАДов
+CREATE TABLE supplement_nutrients (
+    id SERIAL PRIMARY KEY,
+    set_id INT NOT NULL REFERENCES personalized_sets(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    from_set DECIMAL(10,2) NOT NULL,
+    from_nutrition DECIMAL(10,2) NOT NULL,
+    unit TEXT NOT NULL
+);
+--------------------------------------
+INSERT INTO nutrition_reports (reduced_count, sufficient_count, status)
+VALUES (3, 28, 'Дефицит')
+RETURNING id;
+
+-- Текущие метрики
+INSERT INTO current_metrics (report_id, name, current_value, norm_value, unit)
+VALUES
+  (1, 'Витамин C (аскорбиновая кислота)', 42.39, '100', 'мг'),
+  (1, 'Витамин D (кальциферол)', 6.10, '15', 'мкг'),
+  (1, 'Вода', 839.35, 'от 1500 до 1600', 'г'),
+  (1, 'Цинк', 1.00, '12', 'мг'),
+  (1, 'Энергия', 172.42, '3250', 'кв.м');
+
+-- Персонализированный набор
+INSERT INTO personalized_sets (report_id, name, note, description, alternatives_count)
+VALUES (1, 'Протектор BioSetting – «Биосеттинг»', 'ED Smart', 'Сохраняют Колизы вкус', 10)
+RETURNING id;
+
+-- Компоненты набора
+INSERT INTO supplement_nutrients (set_id, name, from_set, from_nutrition, unit)
+VALUES
+  (1, 'Витамин D (кальциферол)', 50.00, 3.24, 'мкг'),
+  (1, 'Цинк', 7.50, 7.71, 'мг'),
+  (1, 'Вода', 75.00, 2819.00, 'г'),  -- 2819 из питания + 75 из набора
+  (1, 'Витамин B6 (пиродоксин)', 100.00, 106.00, 'мг'),
+  (1, 'Витамин C (аскорбиновая кислота)', 330.00, 47.80, 'мг');
