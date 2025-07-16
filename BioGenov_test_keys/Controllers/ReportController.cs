@@ -29,7 +29,6 @@ namespace BioGenov_test_keys.Controllers
             if (report == null)
                 return NotFound();
 
-            // Ручной маппинг
             var reportDto = new ReportDto
             {
                 Id = report.Id,
@@ -65,11 +64,9 @@ namespace BioGenov_test_keys.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateReport([FromBody] NutritionReport report)
         {
-            // Удаляем существующий отчет
             var existing = await _context.Reports.FirstOrDefaultAsync();
             if (existing != null) _context.Remove(existing);
 
-            // Добавляем новый
             await _context.AddAsync(report);
             await _context.SaveChangesAsync();
 
